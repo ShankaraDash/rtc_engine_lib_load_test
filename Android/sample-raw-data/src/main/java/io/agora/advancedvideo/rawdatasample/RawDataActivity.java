@@ -8,41 +8,47 @@ import android.view.SurfaceView;
 import android.view.View;
 import android.widget.FrameLayout;
 
+import com.meetme.pixelation.VideoPreProcessing;
+
 import io.agora.advancedvideo.Constants;
 import io.agora.advancedvideo.activities.BaseLiveActivity;
-import io.agora.advancedvideo.rawdata.MediaDataAudioObserver;
+/*import io.agora.advancedvideo.rawdata.MediaDataAudioObserver;
 import io.agora.advancedvideo.rawdata.MediaDataObserverPlugin;
 import io.agora.advancedvideo.rawdata.MediaDataVideoObserver;
-import io.agora.advancedvideo.rawdata.MediaPreProcessing;
+import io.agora.advancedvideo.rawdata.MediaPreProcessing;*/
 import io.agora.rtc.RtcEngine;
 import io.agora.rtc.video.VideoCanvas;
 import io.agora.rtc.video.VideoEncoderConfiguration;
 
-public class RawDataActivity extends BaseLiveActivity implements MediaDataVideoObserver, MediaDataAudioObserver {
+//public class RawDataActivity extends BaseLiveActivity implements MediaDataVideoObserver, MediaDataAudioObserver {
+public class RawDataActivity extends BaseLiveActivity{
     private static String TAG = "RawData";
 
     private FrameLayout mLocalPreview;
     private FrameLayout mRemotePreview;
 
-    private MediaDataObserverPlugin mediaDataObserverPlugin;
+    //private MediaDataObserverPlugin mediaDataObserverPlugin;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mediaDataObserverPlugin = MediaDataObserverPlugin.the();
-        MediaPreProcessing.setCallback(mediaDataObserverPlugin);
-        MediaPreProcessing.setVideoCaptureByteBuffer(mediaDataObserverPlugin.byteBufferCapture);
-        mediaDataObserverPlugin.addVideoObserver(this);
+        VideoPreProcessing processing = new VideoPreProcessing();
+        processing.enablePreProcessing(true);
+        processing.setBlurRadius(10);
+//        mediaDataObserverPlugin = MediaDataObserverPlugin.the();
+//        MediaPreProcessing.setCallback(mediaDataObserverPlugin);
+//        MediaPreProcessing.setVideoCaptureByteBuffer(mediaDataObserverPlugin.byteBufferCapture);
+//        mediaDataObserverPlugin.addVideoObserver(this);
     }
 
     @Override
     public void onDestroy() {
         rtcEngine().leaveChannel();
-        if (mediaDataObserverPlugin != null) {
-            mediaDataObserverPlugin.removeVideoObserver(this);
-            mediaDataObserverPlugin.removeAllBuffer();
-        }
-        MediaPreProcessing.releasePoint();
+//        if (mediaDataObserverPlugin != null) {
+//            mediaDataObserverPlugin.removeVideoObserver(this);
+//            mediaDataObserverPlugin.removeAllBuffer();
+//        }
+//        MediaPreProcessing.releasePoint();
         super.onDestroy();
     }
 
@@ -103,14 +109,23 @@ public class RawDataActivity extends BaseLiveActivity implements MediaDataVideoO
     public void onFirstRemoteVideoDecoded(final int uid, int width, int height, int elapsed) {
         super.onFirstRemoteVideoDecoded(uid, width, height, elapsed);
         Log.i(TAG, String.format("onFirstRemoteVideoDecoded %d %d %d", uid, width, height));
-        runOnUiThread(new Runnable() {
+//        runOnUiThread(new Runnable() {
+//            @Override
+//            public void run() {
+//                if (mediaDataObserverPlugin != null) {
+//                    mediaDataObserverPlugin.addDecodeBuffer(uid);
+//                }
+
+
+            runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                if (mediaDataObserverPlugin != null) {
-                    mediaDataObserverPlugin.addDecodeBuffer(uid);
-                }
+//                if (mediaDataObserverPlugin != null) {
+//                    mediaDataObserverPlugin.addDecodeBuffer(uid);
+//                }
                 setupRemoteVideo(uid);
             }
+
         });
     }
 
@@ -124,12 +139,18 @@ public class RawDataActivity extends BaseLiveActivity implements MediaDataVideoO
     public void onUserOffline(final int uid, int reason) {
         super.onUserOffline(uid, reason);
         Log.i(TAG, String.format("onUserOffline %d", uid));
+//        runOnUiThread(new Runnable() {
+//////            @Override
+//////            public void run() {
+//////                if (mediaDataObserverPlugin != null) {
+//////                    mediaDataObserverPlugin.removeDecodeBuffer(uid);
+//////                }
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                if (mediaDataObserverPlugin != null) {
-                    mediaDataObserverPlugin.removeDecodeBuffer(uid);
-                }
+//                if (mediaDataObserverPlugin != null) {
+//                    mediaDataObserverPlugin.removeDecodeBuffer(uid);
+//                }
                 mRemotePreview.removeAllViews();
             }
         });
@@ -162,35 +183,35 @@ public class RawDataActivity extends BaseLiveActivity implements MediaDataVideoO
 
     }
 
-    @Override
-    public void onCaptureVideoFrame(byte[] data, int frameType, int width, int height, int bufferLength, int yStride, int uStride, int vStride, int rotation, long renderTimeMs) {
-        Bitmap bmp = YUVUtils.blur(this, YUVUtils.i420ToBitmap(width, height, rotation, bufferLength, data, yStride, uStride, vStride), 10);
-        // copy the new byte array
-        System.arraycopy(YUVUtils.bitmapToI420(width, height, bmp), 0, data, 0, bufferLength);
-    }
-
-    @Override
-    public void onRenderVideoFrame(int uid, byte[] data, int frameType, int width, int height, int bufferLength, int yStride, int uStride, int vStride, int rotation, long renderTimeMs) {
-        Log.i(TAG, String.format("onRenderVideoFrame uid %d width %d height %d bufferLength %d", uid, width, height, bufferLength));
-    }
-
-    @Override
-    public void onRecordAudioFrame(byte[] data, int audioFrameType, int samples, int bytesPerSample, int channels, int samplesPerSec, long renderTimeMs, int bufferLength) {
-
-    }
-
-    @Override
-    public void onPlaybackAudioFrame(byte[] data, int audioFrameType, int samples, int bytesPerSample, int channels, int samplesPerSec, long renderTimeMs, int bufferLength) {
-
-    }
-
-    @Override
-    public void onPlaybackAudioFrameBeforeMixing(int uid, byte[] data, int audioFrameType, int samples, int bytesPerSample, int channels, int samplesPerSec, long renderTimeMs, int bufferLength) {
-
-    }
-
-    @Override
-    public void onMixedAudioFrame(byte[] data, int audioFrameType, int samples, int bytesPerSample, int channels, int samplesPerSec, long renderTimeMs, int bufferLength) {
-
-    }
+//    @Override
+//    public void onCaptureVideoFrame(byte[] data, int frameType, int width, int height, int bufferLength, int yStride, int uStride, int vStride, int rotation, long renderTimeMs) {
+//        Bitmap bmp = YUVUtils.blur(this, YUVUtils.i420ToBitmap(width, height, rotation, bufferLength, data, yStride, uStride, vStride), 10);
+//        // copy the new byte array
+//        System.arraycopy(YUVUtils.bitmapToI420(width, height, bmp), 0, data, 0, bufferLength);
+//    }
+//
+//    @Override
+//    public void onRenderVideoFrame(int uid, byte[] data, int frameType, int width, int height, int bufferLength, int yStride, int uStride, int vStride, int rotation, long renderTimeMs) {
+//        Log.i(TAG, String.format("onRenderVideoFrame uid %d width %d height %d bufferLength %d", uid, width, height, bufferLength));
+//    }
+//
+//    @Override
+//    public void onRecordAudioFrame(byte[] data, int audioFrameType, int samples, int bytesPerSample, int channels, int samplesPerSec, long renderTimeMs, int bufferLength) {
+//
+//    }
+//
+//    @Override
+//    public void onPlaybackAudioFrame(byte[] data, int audioFrameType, int samples, int bytesPerSample, int channels, int samplesPerSec, long renderTimeMs, int bufferLength) {
+//
+//    }
+//
+//    @Override
+//    public void onPlaybackAudioFrameBeforeMixing(int uid, byte[] data, int audioFrameType, int samples, int bytesPerSample, int channels, int samplesPerSec, long renderTimeMs, int bufferLength) {
+//
+//    }
+//
+//    @Override
+//    public void onMixedAudioFrame(byte[] data, int audioFrameType, int samples, int bytesPerSample, int channels, int samplesPerSec, long renderTimeMs, int bufferLength) {
+//
+//    }
 }
