@@ -71,7 +71,7 @@ extern "C" {
 #endif
 
 int __attribute__((visibility("default"))) loadAgoraRtcEnginePlugin(agora::rtc::IRtcEngine* engine) {
-    __android_log_print(ANDROID_LOG_ERROR, "plugin", "plugin FloadAgoraRtcEnginePlugin");
+    __android_log_print(ANDROID_LOG_ERROR, "plugin", "plugin loadAgoraRtcEnginePlugin");
     rtcEngine = engine;
     return 0;
 }

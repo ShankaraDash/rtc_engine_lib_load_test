@@ -1,15 +1,13 @@
 
 
-apply plugin: 'com.android.library'
-
-    plugins {
+plugins {
     id("com.android.library")
     id("org.jetbrains.kotlin.android")
 }
 
 android {
     compileSdkVersion(28)
-    ndkVersion = rootProject.extra.get("tmg.ndk.version") as String
+    //ndkVersion = rootProject.extra.get("tmg.ndk.version") as String
 
     defaultConfig {
         minSdkVersion(16)
@@ -56,5 +54,5 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk7")
 }
 
-apply(from = rootProject.file("gradle/publishing.gradle"))
-apply(from = rootProject.file("gradle/javadoc.gradle"))
+//apply(from = rootProject.file("gradle/publishing.gradle"))
+//apply(from = rootProject.file("gradle/javadoc.gradle"))
